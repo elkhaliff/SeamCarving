@@ -18,11 +18,13 @@ fun main(args: Array<String>) {
             "-out" -> outFileName = args[i + 1]
         }
     }
-    ImageIO.write(seam(inpFileName), fileFormat, File(outFileName))
+
+    val image = transposed(seam(transposed(ImageIO.read(File(inpFileName)))))
+
+    ImageIO.write(image, fileFormat, File(outFileName))
 }
 
-fun seam(inpFileName: String): BufferedImage {
-    val image = ImageIO.read(File(inpFileName))
+fun seam(image: BufferedImage): BufferedImage {
     val energy = energy(image)
 
     var lowestBottom = Double.MAX_VALUE
@@ -73,6 +75,10 @@ fun seam(inpFileName: String): BufferedImage {
 }
 
 fun energy(image: BufferedImage): Array<Array<Double>> {
+    fun pow2(i: Int) = i * i
+
+    fun gradient(clr1: Color, clr2: Color) =
+        pow2(clr1.red - clr2.red) + pow2(clr1.green - clr2.green) + pow2(clr1.blue - clr2.blue)
     val energyMap = Array(image.width) { Array(image.height) { 0.0 } }
 
     for (i in 0 until image.width)
@@ -88,7 +94,12 @@ fun energy(image: BufferedImage): Array<Array<Double>> {
     return energyMap
 }
 
-fun pow2(i: Int) = i * i
+fun transposed(image: BufferedImage): BufferedImage {
+    val imageOut = BufferedImage(image.height, image.width, BufferedImage.TYPE_INT_RGB)
 
-fun gradient(clr1: Color, clr2: Color) =
-    pow2(clr1.red - clr2.red) + pow2(clr1.green - clr2.green) + pow2(clr1.blue - clr2.blue)
+    for (i in 0 until image.width) {
+        for (j in 0 until image.height) imageOut.setRGB(j, i, Color(image.getRGB(i, j)).rgb)
+    }
+
+    return imageOut
+}
