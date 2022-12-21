@@ -5,26 +5,27 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
-fun main() {
-    val width = getInteger("Enter rectangle width:")
-    val height = getInteger("Enter rectangle height:")
+fun main(args: Array<String>) {
+    var inpFileName = ""
+    var outFileName = ""
+    val fileFormat = "png"
 
-    val fileName = getString("Enter output image name:")
-    val fileFormat = "png";
-
-    val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-    val graphics = image.graphics
-
-    graphics.color = Color.red
-    graphics.drawLine(0, 0, width - 1, height - 1)
-    graphics.drawLine(width - 1, 0, 0, height - 1)
-
-    ImageIO.write(image, fileFormat, File(fileName))
+    for (i in args.indices) {
+        when (args[i]) {
+            "-in" -> inpFileName = args[i + 1]
+            "-out" -> outFileName = args[i + 1]
+        }
+    }
+    ImageIO.write(negativeImage(inpFileName), fileFormat, File(outFileName))
 }
 
-fun getString(text: String): String {
-    println(text)
-    return readLine()!!
-}
+fun negativeImage(inpFileName: String): BufferedImage {
+    val image = ImageIO.read(File(inpFileName))
 
-fun getInteger(text: String) = getString(text).toInt()
+    for (i in 0 until image.width)
+        for (j in 0 until image.height) {
+            val color = Color(image.getRGB(i, j))
+            image.setRGB(i, j, Color(255 - color.red, 255 - color.green, 255 - color.blue).rgb)
+        }
+    return image
+}
